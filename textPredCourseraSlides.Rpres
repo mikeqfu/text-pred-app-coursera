@@ -7,10 +7,11 @@ transition: rotate
 
 Data Science - Capstone project
 
-<small>
-- *Class starting from 7 March 2016*
-- *URL to the app: <a href="https://mikeqfu.shinyapps.io/textPredCoursera" target="_blank">https://mikeqfu.shinyapps.io/textPredCoursera</a>*
-</small>
+<small><small>
+- Class starting from 7 March 2016
+- URL to the app: https://mikeqfu.shinyapps.io/textPredCoursera
+- R code available on: https://github.com/mikeqfu/textPredCoursera
+</small></small>
 
 
 
