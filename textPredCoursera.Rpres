@@ -7,25 +7,27 @@ transition: rotate
 
 Data Science - Capstone project
 
-
 <small>
 - *Class starting from 7 March 2016*
-- *URL to the app: https://mikeqfu.shinyapps.io/textPredCoursera*
+- *URL to the app: <a href="https://mikeqfu.shinyapps.io/textPredCoursera" target="_blank">https://mikeqfu.shinyapps.io/textPredCoursera</a>*
 </small>
 
 
 
 Overview
 ========================================================
-This slide deck is intended to 'decode' briefly how a simple word prediction application, "[textPredCoursera](https://mikeqfu.shinyapps.io/textPredCoursera)", works. The app was: 
+<small>
+This slide deck is intended to 'decode' briefly how a simple word prediction application, "<a href="https://mikeqfu.shinyapps.io/textPredCoursera" target="_blank">textPredCoursera</a>", works. The app was: 
 
-* created for the [Capstone Project](https://www.coursera.org/learn/data-science-project) of [Data Science](https://www.coursera.org/specializations/jhu-data-science) course, which is a 10-course series on Coursera; 
-* used for predicting a likely word following a given text message, 
+- created for the <a href="https://www.coursera.org/learn/data-science-project" target="_blank">Capstone Project</a> of 
+<a href="https://www.coursera.org/specializations/jhu-data-science" target="_blank">Data Science</a> course, which is a 10-course series on Coursera; 
+- used for predicting a likely word following a given text message, 
 in which case a few alternatives are available; 
     - <small>For example, when we type: "*It was nice*", the app would suggest that the next word is very likely to be "*to*" or something like "*meeting*", "*seeing*", etc. **(This example is demonstrated at the startup of the app)**.</small>
-* based on [n-gram](https://en.wikipedia.org/wiki/N-gram) frequencies from written text data sourced from Internet blogs, news and twitter. 
-    - <small>*The raw data set is available here: [Coursera-SwiftKey.zip](https://d396qusza40orc.cloudfront.net/dsscapstone/
-dataset/Coursera-SwiftKey.zip)* </small>
+- based on <a href="https://en.wikipedia.org/wiki/N-gram" target="_blank">*N*-gram</a> frequencies from written text data sourced from Internet blogs, news and twitter. 
+
+<small>The raw data set is available here: <a href="https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip" target="_blank">Coursera-SwiftKey.zip</a>.</small>
+</small>
 
 
 
@@ -36,8 +38,12 @@ All the original written text data (including blogs, news and tweets) was mixed 
 
 **Due to the large size of the training set, it was split into a number of smaller data sets, each of which was processed separately via the same via statistical natural language processing method**:
 
-- Creating and cleaning [text corpora](https://en.wikipedia.org/wiki/Text_corpus) for each sub-sample. See also function **`create.corpus()`** in [Code.Rmd]();
-- [Tokenizing](https://en.wikipedia.org/wiki/Tokenization_(lexical_analysis\)) the corpora and building frequency tables of ***2*-grams**, ***3*-grams**, ***4*-grams** and ***5*-grams** based on the processed corpora. See also function **`create.n.gram()`** in [Code.Rmd]();
+- Creating and cleaning 
+<a href="https://en.wikipedia.org/wiki/Text_corpus" target="_blank">text corpora</a> 
+for each sub-sample. See also **`create.corpus()`** in 
+<a href="https://github.com/mikeqfu/textPredCoursera/blob/master/Code.Rmd" target="_blank">Code</a>;
+- <a href="https://en.wikipedia.org/wiki/Tokenization_(lexical_analysis)" target="_blank">Tokenizing</a> the corpora and building frequency tables of ***2*-grams**, ***3*-grams**, ***4*-grams** and ***5*-grams** based on the processed corpora. See also **`create.n.gram()`** in 
+<a href="https://github.com/mikeqfu/textPredCoursera/blob/master/Code.Rmd" target="_blank">Code</a>;
     - Combining frequency tables for each of the ***N*-grams**, respectively; and sort each table in the descending order of the frequency;
 - For each ***N*-gram** table, split the n-gram column into two columns, with one containing the last word and the other containing the rest. *(An example table is shown on next slide.)*
 </small></small>
@@ -63,7 +69,7 @@ With the processed *N*-grams frequency data, we could simply make a prediction o
 - If a matched record is still NOT found, a possible reason might be that the input is not English or contains incorrectly-spelled words. In that case, no prediction will be returned. 
 
 
-See also function **`predictNextWord()`** in [Code.Rmd]().
+See also function **`predictNextWord()`** in <a href="https://github.com/mikeqfu/textPredCoursera/blob/master/Code.Rmd" target="_blank">Code</a>.
 </small></small></small>
 
 

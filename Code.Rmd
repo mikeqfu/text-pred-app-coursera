@@ -83,6 +83,8 @@ download.and.unzip(keep="en_US")
 
 ```
 
+---
+
 #### 2) Reading, pre-cleaning and saving the data
 
 ```{r, eval=FALSE}
@@ -172,6 +174,8 @@ grid.table(basicProperties)
 rm(blogs.info, news.info, twitter.info, textDocs.info)
 ```
 
+---
+
 #### 3) Getting training data set
 
 ```{r, eval=FALSE}
@@ -203,6 +207,8 @@ get.train.valid.test.sets(textDocs, p1=0.9, p2=0.75)
 training <- read.data("training", ...="mod")
 ```
 
+---
+
 #### 4) Spliting the training data set into a number of sub-samples
 
 ```{r, eval=FALSE}
@@ -211,6 +217,8 @@ library(NCmisc)
 file.split(cdd("en_US", "mod", "en_US.training.txt"), size=50000, 
            same.dir=TRUE, verbose=FALSE, win=FALSE)
 ```
+
+---
 
 #### 5) Creating and cleaning text corpora for each sub-sample
 
@@ -494,6 +502,8 @@ for (i in 1:58) {
 
 ```
 
+---
+
 #### 6) Tokenizing the corpora and building frequency tables of 2-gram, 3-gram, 4-gram and 5-grams based on the processed corpus
 
 ```{r, eval=FALSE}
@@ -608,6 +618,8 @@ for (nGram in c("uniGram", "biGram", "triGram", "fourGram", "fiveGram")) {
     }
 }
 ```
+
+---
 
 #### 7) Finalising the data preparation
 
@@ -727,6 +739,8 @@ save(uniGramDF, biGramDF, triGramDF, fourGramDF, fiveGramDF, profanityWords,
      file=file.path(getwd(), "10 - Capstone", "2 - Shiny app", "nGramDF.RData"))
 ```
 
+---
+
 #### 8) Predicting and plotting reference histogram
 
 ```{r, eval=FALSE}
@@ -831,4 +845,3 @@ showUpdateHist <- function(moreHits) {
 }
 
 ```
-
