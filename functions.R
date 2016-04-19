@@ -290,12 +290,12 @@ predictNextWord <- function(inputText) {
         predictions <- as.vector(hits$nextWord)[1:6]
         if (nrow(hits) <= 6) {
             moreHits <- "More options are not available!"
-        } else if (nrow(hits) > 6 & nrow(hits) <= 25) {
+        } else if (nrow(hits) > 6 & nrow(hits) <= 30) {
             moreHits <- hits[, 2:3]
             # moreHits$nextWord <- factor(
             #     moreHits$nextWord, levels=moreHits$nextWord)
         } else {
-            moreHits <- hits[1:25, 2:3]
+            moreHits <- hits[1:30, 2:3]
             # moreHits$nextWord <- factor(
             #     moreHits$nextWord, levels=moreHits$nextWord)
         }
