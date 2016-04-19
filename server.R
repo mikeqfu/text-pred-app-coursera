@@ -7,8 +7,8 @@ shinyServer(
         # The code of "withProgress/incProgress" functions was learnt from, 
         # though slightly cut based on, 
         # https://github.com/ivanliu1989/SwiftKey-Natural-language/blob/master/Shiny_App/SwiftKey-Language-Modelling/server.R
-        withProgress(message="App Initializing ...", value=NULL, {
-            withProgress(message="Loading Data", value=0, {
+        withProgress(message="App initializing ...", value=NULL, {
+            withProgress(message="Loading data", value=0, {
                 load("nGramDF.RData", .GlobalEnv)
                 for (i in 1:20) {
                     incProgress(0.05, detail=paste(":", i*5, "%"))
