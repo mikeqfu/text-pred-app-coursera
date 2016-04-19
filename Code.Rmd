@@ -1,0 +1,834 @@
+---
+title: "Data Science Capstone Project"
+author: "Qian Fu"
+output: html_document
+---
+
+### This document presents all code that we use to manage this project.
+
+---
+
+#### 1) Downloading the data
+
+```{r, eval=FALSE}
+# Change directory within 'Data' folder
+cdd <- function(...) {
+    data.dir <- file.path(getwd(), "10 - Capstone", "Data")
+    for (f in list(...)) {
+        data.dir <- file.path(data.dir, f)
+    }
+    return(data.dir)
+}
+
+
+# Define a set of functions that we'll be using to download and process the original data set
+
+# Download and unzip the Coursera-SwiftKey.zip data
+download.and.unzip <- function(keep="all") {
+    if (!dir.exists(cdd("backup"))) {dir.create(cdd("backup"))}
+    # Specify a data directory and filename
+    savedFile <- cdd("backup", "Coursera-SwiftKey.zip")
+    if (!file.exists(savedFile)) {
+        cat("Downloading the data...\n")
+        # URL link to the original data set
+        fileURL <- paste0(
+            "https://d396qusza40orc.cloudfront.net/dsscapstone/", 
+            "dataset/Coursera-SwiftKey.zip")
+        download.file(fileURL, destfile=savedFile)
+        cat("Downloading the data... Done!\n")
+        cat("Unzipping the data... \n")
+    }
+    
+    if (!file.exists(cdd("en_US")) & !file.exists(cdd("de_DE")) &
+        !file.exists(cdd("fi_FI")) & !file.exists(cdd("ru_RU"))) {
+        # Unzip the downloaded file
+        unzip(savedFile, exdir=cdd())
+        cat("\nUnzipping the data... Done!\n")
+        cat("\nRelocating the unzipped data files... \n")
+        # relocate the unzipped data files
+        dataset <- dir(cdd("final"))
+        datasetDir <- dir(cdd("final"), full.names=TRUE)
+        if (keep=="all") {
+            # Move each of those final data sets out of the 'final' folder
+            lapply(dataset, function(folder) dir.create(cdd(folder)))
+            for (i in seq(dataset)) {
+                d <- dir(datasetDir[i], full.names=TRUE)
+                dir.create(cdd(dataset[i], "raw"))
+                lapply(d, function(f) file.copy(f, cdd(dataset[i], "raw")))
+            }
+        } else {
+            if (keep %in% c("de_DE", "en_US", "fi_FI", "ru_RU")) {
+                # Move the data sets we want out of the 'final' folder
+                i = grep(keep, dataset)
+                if (!dir.exists(cdd(dataset[i]))) {
+                    dir.create(cdd(dataset[i]))
+                    dir.create(cdd(dataset[i], "raw"))
+                }
+                d <- dir(datasetDir[i], full.names=TRUE)
+                file.copy(d, cdd(dataset[i], "raw"))
+            } else {
+                stop("Incorrect 'keep'")
+            }
+        }
+        # Delete the 'final' folder
+        unlink(cdd("final"), recursive=TRUE)
+        cat("All done!\n")
+    } else {
+        cat("Data files are available.\n")
+    }
+}
+
+
+download.and.unzip(keep="en_US")
+
+```
+
+#### 2) Reading, pre-cleaning and saving the data
+
+```{r, eval=FALSE}
+# Define a function to read a text file
+read.data <- function(filename, language="en_US", ...) {
+    # Get data directory
+    f <- cdd(language, ..., paste0(language, ".", filename, ".txt"))
+    # Read text file
+    fConn <- file(f, open="rb")
+    data <- readLines(fConn, n=-1, encoding="UTF-8", skipNul=TRUE)
+    close(fConn)
+    return(data)
+}
+
+suppressMessages(library(gdata))
+# Define a function that get basic properties of a text file
+read.data.info <- function(data, dataVarName, language="en_US", ...) {
+    filename <- paste0(language, ".", dataVarName, ".txt")
+    # Get data directory
+    f <- cdd(language, ..., filename)
+    # Get file size
+    fileSize <- humanReadable(file.size(f))
+    # Count number of lines
+    lineCount <- format(length(data), big.mark=",")
+    # Count number of characters for each line
+    maxCharNum <- format(max(nchar(data)), big.mark=",")
+    return(data.frame(filename, fileSize, lineCount, maxCharNum))
+}
+
+
+# Define a function that pre-cleans the loaded data
+pre.clean <- function(data) {
+    tmp0 <- lapply(data, function(x) iconv(x, "UTF-8", "ASCII", sub=""))
+    tmp <- unlist(tmp0)
+    d <- gsub("\032", "", tmp)
+    return(d)
+}
+
+
+# Save the pre-cleaned data
+save.data <- function(data, dataVarName, language="en_US", ...) {
+    if (!dir.exists(cdd(language, ...))) {
+        dir.create(cdd(language, ...))
+    }
+    fileConn <- file(
+        cdd(language, ..., paste0(language, ".", dataVarName, ".txt")))
+    writeLines(data, fileConn, sep="\n", useBytes=FALSE)
+    close(fileConn)
+}
+
+
+# Read 'en_US.blogs.txt'
+blogs <- read.data("blogs", language="en_US", "raw")
+blogs <- pre.clean(blogs)
+save.data(blogs, "blogs", language="en_US", "prep")
+blogs.info <- read.data.info(blogs, "blogs", language="en_US", "prep")
+
+
+# Read 'en_US.news.txt'
+news <- read.data("news", language="en_US", "raw")
+news <- pre.clean(news)
+save.data(news, "news", language="en_US", "prep")
+news.info <- read.data.info(news, "news", language="en_US", "prep")
+
+
+# Read 'en_US.twitter.txt'
+twitter <- read.data("twitter", language="en_US", "raw")
+twitter <- pre.clean(twitter)
+save.data(twitter, "twitter", language="en_US", "prep")
+twitter.info <- read.data.info(twitter, "twitter", language="en_US", "prep")
+
+
+# Combine all text data together
+textDocs <- c(blogs, news, twitter); rm(blogs, news, twitter)
+save.data(textDocs, "textDocs", language="en_US", "prep")
+# Get basic properties of 'textDoc.txt'
+textDocs.info <- read.data.info(textDocs, "textDocs", language="en_US", "prep")
+# rm(textDocs)
+
+# Concatenate the .info dfs
+basicProperties <- rbind(blogs.info, news.info, twitter.info, textDocs.info)
+
+suppressMessages(library(gridExtra))
+# Print 'basicProperties'
+grid.table(basicProperties)
+
+rm(blogs.info, news.info, twitter.info, textDocs.info)
+```
+
+#### 3) Getting training data set
+
+```{r, eval=FALSE}
+# Get training, validating and testing sets
+get.train.valid.test.sets <- function(textDocs, p1=0.9, p2=0.75) {
+    # Read text data
+    textDocs <- read.data("textDocs", "en_US", "prep")
+    
+    tvIndex <- sample(seq(length(textDocs)), size=round(length(textDocs) * p1))
+    tvSet <- textDocs[tvIndex]
+    trainIndex <- sample(seq(length(tvSet)), size=round(length(tvSet) * p2))
+    training <- tvSet[trainIndex]
+    validating <- tvSet[-trainIndex]
+    testing <- textDocs[-tvIndex]
+    
+    rm(tvIndex, trainIndex, tvSet)
+    
+    # Save the three data sets
+    save.data(training, "training", language="en_US", "mod"); rm(training)
+    save.data(validating, "validating", language="en_US", "mod"); rm(validating)
+    save.data(testing, "testing", language="en_US", "mod"); rm(testing)
+}
+
+
+set.seed(1)
+
+get.train.valid.test.sets(textDocs, p1=0.9, p2=0.75)
+
+training <- read.data("training", ...="mod")
+```
+
+#### 4) Spliting the training data set into a number of sub-samples
+
+```{r, eval=FALSE}
+library(NCmisc)
+
+file.split(cdd("en_US", "mod", "en_US.training.txt"), size=50000, 
+           same.dir=TRUE, verbose=FALSE, win=FALSE)
+```
+
+#### 5) Creating and cleaning text corpora for each sub-sample
+
+```{r, eval=FALSE}
+# Define a function that downloads and get ready a list of bad words
+get.profanityWords <- function() {
+    # directory of zipped file
+    zipped_f <- cdd("backup", "en_US.profanityWords.zip")
+    # directory of unzipped file
+    f <- cdd("en_US", "useful.resources", "en_US.profanityWords.txt")
+    # download the zipped file?
+    if (!file.exists(zipped_f) | !file.exists(f)) {
+        download.file(
+            paste0("http://www.freewebheaders.com", 
+                   "/wordpress/wp-content/uploads", 
+                   "/full-list-of-bad-words-", 
+                   "banned-by-google-txt-file.zip"), 
+            file.path(zipped_f))
+        # Unzip the zipped file
+        # dir.create(cdd("en_US", "useful.resources"))
+        unzip(zipped_f, exdir=cdd("en_US", "useful.resources"))
+        # Rename the unzipped file
+        file.rename(
+            cdd("en_US", "useful.resources", 
+                paste0("full-list-of-bad-words-", 
+                       "banned-by-google-txt-file",
+                       "_2013_11_26_04_53_31_867.txt")), f)
+        # write one "\n" into the unzipped file to avoid reading warning
+        write("\n", f, append=TRUE)
+    }
+    # read the unzipped file
+    profanityWords <- readLines(f)
+    # clean the unzipped file
+    profanityWords <- gsub("\\s+$", "", profanityWords)
+    return(head(profanityWords, -1))
+}
+
+
+library(NLP)    # Aside: "NLP" is short for "Natural lLanguage Processing"
+library(tm)     # Aside: "tm" is short for "text mining"
+
+
+# Define a function that creates a corpus
+# (Aside: simply, a corpus is a collection of documents)
+create.corpus <- function(textDocs, 
+                          rm_profanityWords=TRUE, 
+                          rm_punctuation=FALSE, 
+                          rm_stopwords=FALSE) {
+    # # Combining all lines of text to make a single text document
+    # doc <- paste(textDocs, collapse=" ")
+    # Make a text source from the text document
+    vecSource <- VectorSource(textDocs)
+    # Make a corpus from the text source
+    corpus <- VCorpus(vecSource)
+    
+    # 
+    # Cleaning the corpus
+    # 
+    ## transform all text into lower-case text
+    corpus <- tm_map(corpus, content_transformer(tolower))
+    
+    ## remove bad words?
+    if (rm_profanityWords) {
+        profanityWords <- tolower(get.profanityWords())
+        corpus <- tm_map(corpus, removeWords, profanityWords)
+        rm(badWords)
+    }
+    
+    corpus <- tm_map(corpus, to.space, '\\\"')
+    corpus <- tm_map(corpus, to.space, "\\.\\.|\\.\\.\\.+")
+    corpus <- tm_map(corpus, to.space, "[0-9]+.[0-9]+")
+    ## remove tweets hashtags
+    corpus <- tm_map(corpus, to.space, "\\#(.*?) ")
+    corpus <- tm_map(corpus, to.space, "\\#(.*)")
+    corpus <- tm_map(corpus, to.space, "\\#(.*)\\.")
+    ## remove URLs
+    corpus <- tm_map(corpus, to.space, "http(.*?) ")
+    corpus <- tm_map(corpus, to.space, "http(.*)")
+    corpus <- tm_map(corpus, to.space, "http(.*)\\.")
+    corpus <- tm_map(corpus, to.space, "www\\.(.*?) ")
+    corpus <- tm_map(corpus, to.space, "www\\.(.*)")
+    corpus <- tm_map(corpus, to.space, "www\\.(.*)\\.")
+    # 
+    corpus <- tm_map(corpus, to.space, "\\&\\&+")
+    corpus <- tm_map(corpus, to.space, "[0-9]+[a-z]+ ")
+    #
+    corpus <- tm_map(corpus, to.and, " \\& ")
+    corpus <- tm_map(corpus, to.and, "\\&")
+    ## remove punctuations
+    if (rm_punctuation) {corpus <- tm_map(corpus, removePunctuation)}
+    ## remove some symbols
+    corpus <- tm_map(corpus, to.space, "\\!|\\£|\\$|\\%|\\^|\\'")
+    corpus <- tm_map(corpus, to.space, "\\*|\\(|\\)|\\-|\\_")
+    corpus <- tm_map(corpus, to.space, "\\{|\\}|\\[|\\]|\\+|\\=")
+    corpus <- tm_map(corpus, to.space, "\\:|\\;|\\@|\\~|<|>|\\.|,")
+    corpus <- tm_map(corpus, to.space, "\\||\\¬|\\`|\\?|\\/|\\\\")
+    #
+    corpus <- tm_map(corpus, to.I, " i |^i | i$|^i$")
+    # 
+    corpus <- tm_map(corpus, to.Iam, " im |^im | I m |^I m |I m$")
+    #
+    corpus <- tm_map(corpus, to.Iwould, " I d |^I d | I d$|I d$")
+    # 
+    corpus <- tm_map(corpus, to.will, " ll ")
+    # 
+    corpus <- tm_map(corpus, to.have, " ve ")
+    # 
+    corpus <- tm_map(corpus, to.are, " re ")
+    #
+    corpus <- tm_map(corpus, to.youare, " you re |^you re | youre |^youre ")
+    #
+    corpus <- tm_map(corpus, to.theyare, 
+                     " they re |^they re | theyre |^theyre ")
+    #
+    corpus <- tm_map(corpus, to.weare, " we re |^we re ")
+    # 
+    corpus <- tm_map(corpus, to.itis, " it s |^it s ")
+    # 
+    corpus <- tm_map(corpus, to.sheis, " she s |^she s | shes |^shes ")
+    # 
+    corpus <- tm_map(corpus, to.heis, " he s |^he s | hes |^hes ")
+    # 
+    corpus <- tm_map(corpus, to.donot, " don t | dont |^don t |^dont ")
+    # 
+    corpus <- tm_map(corpus, to.doesnot, 
+                     " doesn t | doesnt |^doesn t |^doesnt ")
+    # 
+    corpus <- tm_map(corpus, to.didnot, " didn t | didnt |^didn t |^didnt ")
+    #
+    corpus <- tm_map(corpus, to.isnot, " isnt |^isnt | isn t |^isn t ")
+    # 
+    corpus <- tm_map(corpus, to.wasnot, " wasnt |^wasnt | wasn t |^wasn t ")
+    # 
+    corpus <- tm_map(corpus, to.letus, " let s |^let s | lets |^lets ")
+    # 
+    corpus <- tm_map(corpus, to.cannot, " can t | ^can t | cant |^cant ")
+    # 
+    corpus <- tm_map(corpus, to.couldnot, 
+                     " couldn t |^couldn t | couldnt |^couldnt ")
+    # 
+    corpus <- tm_map(corpus, to.wouldnot, 
+                     " wouldn t |^wouldn t | wouldnt |^wouldnt ")
+    # 
+    corpus <- tm_map(corpus, to.shouldnot, 
+                     " shouldn t |^shouldn t | shouldnt |^shouldnt ")
+    # 
+    corpus <- tm_map(corpus, to.thatis, " thats |^thats |^that s | that s ")
+    # 
+    corpus <- tm_map(corpus, to.whatis, " whats |^whats |^what s | what s ")
+    # 
+    corpus <- tm_map(corpus, to.whois, " whos |^whos |^who s | who s ")
+    # 
+    corpus <- tm_map(corpus, to.howis, " hows |^hows |^how s | how s ")
+    # 
+    corpus <- tm_map(corpus, to.whereis, 
+                     " wheres |^wheres |^where s | where s ")
+    # 
+    corpus <- tm_map(corpus, to.whenis, " whens |^whens |^when s | when s ")
+    # 
+    corpus <- tm_map(corpus, to.whyis, " whys |^whys |^why s | why s ")
+    ## remove numbers
+    corpus <- tm_map(corpus, removeNumbers)
+    corpus <- tm_map(corpus, to.space, "[a-z]+([a-z])\\1{2,}")
+    ## remove all single letters, except "i" and "a"
+    corpus <- tm_map(corpus, to.space, " [b-z] |^[b-z] | [b-z]$")
+    ## remove 'stopwords'?
+    if (rm_stopwords) {corpus <- tm_map(corpus, removeWords, stopwords("en"))}
+    ## remove whitespace
+    corpus <- tm_map(corpus, stripWhitespace)
+    return(corpus)
+}
+
+
+strip <- function (str) gsub("^\\s+|\\s+$", "", str)
+
+to.space <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " ", x))})
+
+to.and <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " and ", x))})
+
+to.I <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " I ", x))})
+
+to.Iam  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " I am ", x))})
+
+to.Iwould  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " I would ", x))})
+
+to.will  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " will ", x))})
+
+to.have  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " have ", x))})
+
+to.are  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " are ", x))})
+
+to.youare <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " you are ", x))})
+
+to.theyare <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " they are ", x))})
+
+to.weare <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " we are ", x))})
+
+to.itis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " it is ", x))})
+
+to.sheis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " she is ", x))})
+
+to.heis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " he is ", x))})
+
+to.donot  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " do not ", x))})
+
+to.doesnot  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " does not ", x))})
+
+to.didnot  <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " did not ", x))})
+
+to.isnot <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " is not ", x))})
+
+to.wasnot <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " was not ", x))})
+
+to.letus <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " let us ", x))})
+
+to.cannot <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " cannot ", x))})
+
+to.couldnot <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " could not ", x))})
+
+to.wouldnot <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " would not ", x))})
+
+to.shouldnot <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " should not ", x))})
+
+to.thatis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " that is ", x))})
+
+to.whatis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " what is ", x))})
+
+to.whois <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " who is ", x))})
+
+to.howis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " how is ", x))})
+
+to.whereis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " where is ", x))})
+
+to.whenis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " when is ", x))})
+
+to.whyis <- content_transformer(
+    function(x, pattern) {return(gsub(pattern, " why is ", x))})
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+for (i in 1:58) {
+    sample <- read.data(paste0("training_part", as.character(i)), ...="mod")
+    corpus <- create.corpus(sample)
+    corpusDir <- cdd("en_US", "mod", "corpus")
+    if (!dir.exists(corpusDir)) {dir.create(corpusDir)}
+    save(corpus, 
+         file=file.path(corpusDir, paste0("corpus", as.character(i), ".RData")))
+    rm(sample, corpus)
+}
+
+```
+
+#### 6) Tokenizing the corpora and building frequency tables of 2-gram, 3-gram, 4-gram and 5-grams based on the processed corpus
+
+```{r, eval=FALSE}
+# Define a function that creates N-gram data frame
+library(RWeka)
+
+create.n.gram <- function(myCorpus, n) {
+    
+    tmpDoc <- c()
+    for (j in seq(myCorpus)) {
+        tmpDoc <- c(tmpDoc, myCorpus[[j]]$content)
+    }
+    doc <- paste(tmpDoc, collapse=" ")
+    
+    tokenizer <- NGramTokenizer(doc, Weka_control(min=n, max=n)); rm(doc)
+    nGramDF <- data.frame(table(tokenizer)); rm(tokenizer)
+    sorted.nGramDF <- nGramDF[rev(order(nGramDF$Freq)), ]
+    rownames(sorted.nGramDF) <- 1:nrow(sorted.nGramDF)
+    return(sorted.nGramDF)
+}
+
+
+# Creating uni-gram, bi-gram, tri-gram, four-gram and five-gram
+for (i in 1:58) {
+    
+    load(cdd("en_US", "mod", "corpus", corpusFilename))
+    corpusFilename <- paste0("corpus", as.character(i), ".RData")
+    
+    # 1-gram
+    uniGram <- create.n.gram(corpus, 1)
+    uniGramDir <- cdd("en_US", "mod", "uniGram")
+    uniFile <- paste0("uniGram_part", as.character(i), ".txt")
+    write.table(uniGram, file=file.path(uniGramDir, uniFile)); rm(uniGram)
+    
+    # 2-gram
+    biGram <- create.n.gram(corpus, 2)
+    biGramDir <- cdd("en_US", "mod", "biGram")
+    biFile <- paste0("biGram_part", as.character(i), ".txt")
+    write.table(biGram, file=file.path(biGramDir, biFile)); rm(biGram)
+    
+    # 3-gram
+    triGram <- create.n.gram(corpus, 3)
+    triGramDir <- cdd("en_US", "mod", "triGram")
+    triFile <- paste0("triGram_part", as.character(i), ".txt")
+    write.table(triGram, file=file.path(triGramDir, triFile)); rm(triGram)
+    
+    # 4-gram
+    fourGram <- create.n.gram(corpus, 4)
+    fourGramDir <- cdd("en_US", "mod", "fourGram")
+    if (!dir.exists(fourGramDir)) {dir.create(fourGramDir)}
+    fourFile <- paste0("fourGram_part", as.character(i), ".txt")
+    write.table(fourGram, file=file.path(fourGramDir, fourFile)); rm(fourGram)
+    
+    # 5-gram
+    fiveGram <- create.n.gram(corpus, 5)
+    fiveGramDir <- cdd("en_US", "mod", "fiveGram")
+    if (!dir.exists(fiveGramDir)) {dir.create(fiveGramDir)}
+    fiveFile <- paste0("fiveGram_part", as.character(i), ".txt")
+    write.table(fiveGram, file=file.path(fiveGramDir, fiveFile)); rm(fiveGram)
+    
+    rm(corpus)
+}
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Combining frequency tables for each of the N-grams, respectively; and 
+# sort each table in the descending order of the frequency
+for (nGram in c("uniGram", "biGram", "triGram", "fourGram", "fiveGram")) {
+    cat("\n", paste("Processing", nGram), "...\n")
+    maxFileNum <- 58
+    i <- 1
+    while (i <= maxFileNum) {
+        dfList <- list()
+        fname <- paste0(nGram, "_part", as.character(i), ".txt")
+        
+        if (i == 1) {
+            mergedDF <- read.table(cdd("en_US", "mod", nGram, fname))
+        } else {
+            # dfList[[1]] <- read.table(cdd("en_US", "mod", nGram, "_tmp.txt"))
+            dfList[[1]] <- tmpDF
+            dfList[[2]] <- read.table(cdd("en_US", "mod", nGram, fname))
+            mergedDF <- Reduce(
+                function(...) merge(..., by="tokenizer", all=TRUE), dfList)
+            rm(dfList)
+        }
+        
+        if (ncol(mergedDF) == 2) {
+            # colnames(mergedDF) <- c("tokenizer", "Frequency")
+            tmpDF <- mergedDF
+            # write.table(tmpDF, file=cdd("en_US", "mod", nGram, "_tmp.txt"))
+        } else {
+            mergedDF[is.na(mergedDF)] <- 0
+            mergedDF$Frequency <- rowSums(mergedDF[ , 2:ncol(mergedDF)])
+            mergedDF <- mergedDF[ , -(2:(ncol(mergedDF)-1))]
+            tmpDF <- mergedDF[rev(order(mergedDF$Frequency)), ]; rm(mergedDF)
+            
+            if (i < maxFileNum) {
+                rownames(tmpDF) <- 1:nrow(tmpDF)
+                colnames(tmpDF) <- c("tokenizer", "Freq")
+                # write.table(tmpDF, file=cdd("en_US", "mod", nGram, "_tmp.txt"))
+            } else if (i == maxFileNum) {
+                finalDF <- tmpDF[which(tmpDF$Frequency != 1), ]
+                rm(tmpDF)
+                rownames(finalDF) <- 1:nrow(finalDF)
+                write.csv(
+                    finalDF, 
+                    file=cdd("en_US", "mod", nGram, paste0(nGram, ".csv")),
+                    row.names=FALSE)
+            }
+        }
+        cat(paste0(nGram, "_part", as.character(i), ".txt"), "...", "Done!\n")
+        i <- i + 1
+    }
+}
+```
+
+#### 7) Finalising the data preparation
+
+```{r, eval=FALSE}
+# For each N-gram table, split the n-gram column into two columns, 
+# with one containing the last word and the other containing the rest. 
+
+# +++++++
+# uniGram
+# +++++++
+nGram <- "uniGram"
+uniGramDF <- read.csv(
+    cdd("en_US", "mod", nGram, paste0(nGram, ".csv")), header=TRUE)
+colnames(uniGramDF) <- c("uniGram", "Frequency")
+write.csv(
+    uniGramDF, file=cdd("en_US", "mod", nGram, paste0(nGram, "_final.csv")),
+    row.names=FALSE)
+
+
+# ++++++
+# biGram
+# ++++++
+nGram <- "biGram"
+nGramDF <- read.csv(
+    cdd("en_US", "mod", nGram, paste0(nGram, ".csv")), header=TRUE)
+nGramDF_tmp <- strsplit(as.character(nGramDF$tokenizer), " ")
+biGramDF <- data.frame(do.call(rbind, nGramDF_tmp), nGramDF$Frequency)
+colnames(biGramDF) <- c("asInput", "nextWord", "Frequency")
+write.csv(
+    biGramDF, file=cdd("en_US", "mod", nGram, paste0(nGram, "_final.csv")),
+    row.names=FALSE)
+
+
+# +++++++
+# triGram
+# +++++++
+nGram <- "triGram"
+nGramDF <- read.csv(
+    cdd("en_US", "mod", nGram, paste0(nGram, ".csv")), header=TRUE)
+nGramDF_tmp <- strsplit(as.character(nGramDF$tokenizer), " ")
+nGramDF_final <- data.frame(do.call(rbind, nGramDF_tmp), nGramDF$Freq)
+
+nGramDF_final$asInput <- apply(
+    nGramDF_final[ , 1:(ncol(nGramDF_final) - 2)] , 1 , paste , collapse = " ")
+nGramDF_final <- nGramDF_final[, -(1:(ncol(nGramDF_final) - 3))]
+
+# Rename columns
+colnames(nGramDF_final) <- c("nextWord", "Frequency", "asInput")
+# Change column order
+triGramDF <- nGramDF_final[, c("asInput", "nextWord", "Frequency")]
+rm(nGramDF_final)
+write.csv(
+    triGramDF, file=cdd("en_US", "mod", nGram, paste0(nGram, "_final.csv")),
+    row.names=FALSE)
+
+
+
+# ++++++++
+# fourGram
+# ++++++++
+nGram <- "fourGram"
+nGramDF <- read.csv(
+    cdd("en_US", "mod", nGram, paste0(nGram, ".csv")), header=TRUE)
+nGramDF_tmp <- strsplit(as.character(nGramDF$tokenizer), " ")
+nGramDF_final <- data.frame(do.call(rbind, nGramDF_tmp), nGramDF$Frequency)
+
+nGramDF_final$asInput <- apply(
+    nGramDF_final[ , 1:(ncol(nGramDF_final) - 2)] , 1 , paste , collapse = " ")
+nGramDF_final <- nGramDF_final[, -(1:(ncol(nGramDF_final) - 3))]
+
+# Rename columns
+colnames(nGramDF_final) <- c("nextWord", "Frequency", "asInput")
+# Change column order
+fourGramDF <- nGramDF_final[, c("asInput", "nextWord", "Frequency")]
+rm(nGramDF_final)
+write.csv(
+    fourGramDF, file=cdd("en_US", "mod", nGram, paste0(nGram, "_final.csv")),
+    row.names=FALSE)
+
+
+# ++++++++
+# fiveGram
+# ++++++++
+nGram <- "fiveGram"
+nGramDF <- read.csv(
+    cdd("en_US", "mod", nGram, paste0(nGram, ".csv")), header=TRUE)
+nGramDF_tmp <- strsplit(as.character(nGramDF$tokenizer), " ")
+nGramDF_final <- data.frame(do.call(rbind, nGramDF_tmp), nGramDF$Frequency)
+
+nGramDF_final$asInput <- apply(
+    nGramDF_final[ , 1:(ncol(nGramDF_final) - 2)] , 1 , paste , collapse = " ")
+nGramDF_final <- nGramDF_final[, -(1:(ncol(nGramDF_final) - 3))]
+
+colnames(nGramDF_final) <- c("nextWord", "Frequency", "asInput")
+fiveGramDF <- nGramDF_final[, c("asInput", "nextWord", "Frequency")]
+rm(nGramDF_final)
+write.csv(
+    fiveGramDF, file=cdd("en_US", "mod", nGram, paste0(nGram, "_final.csv")),
+    row.names=FALSE)
+
+
+# Save the data to .RData
+uniGramDF <- read.csv(
+    cdd("en_US", "mod", "uniGram", "uniGram_final.csv"), header=TRUE)
+biGramDF <- read.csv(
+    cdd("en_US", "mod", "biGram", "biGram_final.csv"), header=TRUE)
+triGramDF <- read.csv(
+    cdd("en_US", "mod", "triGram", "triGram_final.csv"), header=TRUE)
+fourGramDF <- read.csv(
+    cdd("en_US", "mod", "fourGram", "fourGram_final.csv"), header=TRUE)
+fiveGramDF <- read.csv(
+    cdd("en_US", "mod", "fiveGram", "fiveGram_final.csv"), header=TRUE)
+profanityWords <- readLines(
+    cdd("en_US", "useful.resources", "en_US.profanity.words.txt"))
+profanityWords <- tolower(gsub("\\s+$", "", profanityWords))
+save(uniGramDF, biGramDF, triGramDF, fourGramDF, fiveGramDF, profanityWords, 
+     file=file.path(getwd(), "10 - Capstone", "2 - Shiny app", "nGramDF.RData"))
+```
+
+#### 8) Predicting and plotting reference histogram
+
+```{r, eval=FALSE}
+# Define a function that predicts the next word
+library(stringr)
+predictNextWord <- function(inputText) {
+    # Clean input text
+    input <- create.corpus(inputText)[[1]]$content
+    input <- strip(input)
+    
+    inputTemp <- unlist(str_split(input," "))
+    lenInput <- length(inputTemp)
+    
+    nGrams <- list(fiveGramDF, fourGramDF, triGramDF, biGramDF)
+    
+    predictions <- c()
+    
+    thr <- 6
+    if (lenInput >= 4) {
+        # first trail
+        gram <- paste(inputTemp[(lenInput - 3):lenInput], collapse=" ")
+        hits <- fiveGramDF[fiveGramDF$asInput == gram, ]
+        i <- 2
+        while (nrow(hits) < thr & i <= 4) {
+            gram <- str_split_fixed(gram, " ", 2)[2]
+            hits <- nGrams[[i]][nGrams[[i]]$asInput == gram, ]
+            i <- i + 1
+        }
+    } else {
+        gram <- paste(inputTemp, collapse=" ")
+        if (lenInput == 3) {
+            hits <- fourGramDF[fourGramDF$asInput == gram, ]
+            i <- 3
+            while (nrow(hits) < thr & i <= 4) {
+                gram <- str_split_fixed(gram, " ", 2)[2]
+                hits <- nGrams[[i]][nGrams[[i]]$asInput == gram, ]
+                i <- i + 1
+            }
+        } else if (lenInput == 2) {
+            hits <- triGramDF[triGramDF$asInput == gram, ]
+            if (nrow(hits) < thr) {
+                gram <- str_split_fixed(gram, " ", 2)[2]
+                hits <- biGramDF[biGramDF$asInput == gram, ]
+            }
+        } else if (lenInput == 1) {
+            hits <- biGramDF[biGramDF$asInput == gram, ]
+        } else if (lenInput == 0) {
+            hits <- data.frame()
+        }
+    }
+    
+    predictions <- as.vector(hits$nextWord)[1:6]
+    
+    if (nrow(hits) == 0) {
+        predictions <- c("", "", "", "", "", "")
+        moreHits <- "More options are not available!"
+        if (inputText != "") {
+            predictions[1] <- paste(
+                '"Sorry, I do not understand your input!!!', 
+                'Check with the free online dictionary via the', 
+                'link provided below the input textbox.')
+        }
+    } else {
+        predictions <- as.vector(hits$nextWord)[1:6]
+        if (nrow(hits) <= 6) {
+            moreHits <- "More options are not available!"
+        } else if (nrow(hits) > 6 & nrow(hits) <= 25) {
+            moreHits <- hits[, 2:3]
+            # moreHits$nextWord <- factor(
+            #     moreHits$nextWord, levels=moreHits$nextWord)
+        } else {
+            moreHits <- hits[1:25, 2:3]
+            # moreHits$nextWord <- factor(
+            #     moreHits$nextWord, levels=moreHits$nextWord)
+        }
+    }
+    return(list(predictions, moreHits))
+}
+
+
+# Plotting a histogram (for reference only)
+showUpdateHist <- function(moreHits) {
+    if (is.data.frame(moreHits)) {
+        if (nrow(moreHits) > 0) {
+            moreHits <- moreHits[order(moreHits[,2]), ]
+            moreHits$nextWord <- factor(
+                moreHits$nextWord, levels=moreHits$nextWord)
+            g <- ggplot(moreHits, aes(x=nextWord, y=Frequency))
+            g <- g + geom_bar(stat="Identity", fill="#009E73", width=0.6)
+            g <- g + theme(#axis.text.x=element_text(angle=45, hjust=1, size=17),
+                axis.text.y=element_text(size=14),
+                axis.title.x=element_text(size=16, face="bold"),
+                axis.title.y=element_text(size=16, face="bold"))
+            g <- g + labs(x="Most likely next words", y="Frequency (for reference only)")
+            g + coord_flip()
+        } else {
+            return(moreHits)
+        }
+    } else {
+        return(moreHits)
+    }
+}
+
+```
+
