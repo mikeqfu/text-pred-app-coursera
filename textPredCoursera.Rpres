@@ -68,7 +68,6 @@ With the processed *N*-grams frequency data, we could simply make a prediction o
 - However, if none of the "`asInput`" in the ***N*-gram** table matches the input text, the app will then try to search in the **(*N*-1)-gram** table, and so on until the ***2*-gram** table has been examined.
 - If a matched record is still NOT found, a possible reason might be that the input is not English or contains incorrectly-spelled words. In that case, no prediction will be returned. 
 
-
 See also function **`predictNextWord()`** in <a href="https://github.com/mikeqfu/textPredCoursera/blob/master/Code.Rmd" target="_blank">Code</a>.
 </small></small></small>
 
