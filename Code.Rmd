@@ -4,7 +4,7 @@ author: "Qian Fu"
 output: html_document
 ---
 
-### This document presents all code that we use to manage this project.
+## This document presents all code that we use to manage this project.
 
 ---
 
