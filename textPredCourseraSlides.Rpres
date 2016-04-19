@@ -7,11 +7,14 @@ transition: rotate
 
 Data Science - Capstone project
 
-<small><small>
-- Class starting from 7 March 2016
-- URL to the app: https://mikeqfu.shinyapps.io/textPredCoursera
-- R code available on: https://github.com/mikeqfu/textPredCoursera
-</small></small>
+<small>
+<small>
+* Class starting from 7 March 2016
+* URL to the app: https://mikeqfu.shinyapps.io/textPredCoursera
+* R code available on: https://github.com/mikeqfu/textPredCoursera
+
+</small>
+</small>
 
 
 
@@ -46,7 +49,9 @@ for each sub-sample. See also **`create.corpus()`** in
 - <a href="https://en.wikipedia.org/wiki/Tokenization_(lexical_analysis)" target="_blank">Tokenizing</a> the corpora and building frequency tables of ***2*-grams**, ***3*-grams**, ***4*-grams** and ***5*-grams** based on the processed corpora. See also **`create.n.gram()`** in 
 <a href="https://github.com/mikeqfu/textPredCoursera/blob/master/Code.Rmd" target="_blank">Code</a>;
     - Combining frequency tables for each of the ***N*-grams**, respectively; and sort each table in the descending order of the frequency;
+    
 - For each ***N*-gram** table, split the n-gram column into two columns, with one containing the last word and the other containing the rest. *(An example table is shown on next slide.)*
+
 </small></small>
 
 
@@ -74,10 +79,16 @@ See also function **`predictNextWord()`** in <a href="https://github.com/mikeqfu
 
 
 
-Brief summary
+Brief summary of the app
 ========================================================
-- The app introduced in this slide deck can
-    - predict the next word as we type; and
-    - provide several alternatives for what the next word might be.
-- A full set of instructions of how to use the app is available on the left-hand sidebar on the app page. 
+- <small>The app introduced in this slide deck can predict the next word as we type in the textbox on the main panel, and provide several alternatives for what the next word might be: <small>
+    - the most-likely next word will show/update below "**The next word might be**";
+    - more alternative words will also be available below "**More alternatives of the next word**";
+    - clicking "**Show/Update ...**" button will present a reference histogram for the current prediction; and 
+    - clicking "**Hide/Display**" button hides or displays the current histogram again.
+
+    *(A full set of instructions of how to use the app is available on the left-hand sidebar of the app)*
+</small>
 - There is still a lot of room for improvement on both accuracy and efficiency of the prediction algorithm, which will need to be evaluated with the test data set.
+
+</small>
