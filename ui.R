@@ -1,0 +1,100 @@
+library(shiny)
+library(shinyjs)
+
+shinyUI(
+    fluidPage(
+        
+        titlePanel(
+			"A simple app for text prediction"
+		),
+        
+		sidebarLayout(
+            sidebarPanel(
+                h3("Introduction"),
+                p("This simple Shiny app is created for the ", 
+                  a(strong("Capstone Project"),
+                    href="https://www.coursera.org/learn/data-science-project/",
+                    target="_blank"), "of the", 
+                  a(strong("Data Science"), 
+                    href="https://www.coursera.org/specializations/jhu-data-science",
+                    target="_blank"), 
+                  "Coursera course. It contains a predictive text model that 
+                  may guess the most likely word following a given text message 
+                  and, in addition, also provide several alternatives for what 
+                  the next word might be."), 
+				p("For example, when we type: \"It was nice\", the next word 
+				  might be most likely to be \"to\"; or it might be something 
+				  like \"meeting\", \"seeing\", ..."),
+				p("In this app, the predictions are based on machine learning 
+				  from written text data sourced from Internet blogs, news and 
+				  twitter. The data set is available here:", 
+				  a("Coursera-SwiftKey.zip", 
+				    href=paste0("https://d396qusza40orc.cloudfront.net/", 
+				                "dsscapstone/dataset/Coursera-SwiftKey.zip"))), 
+				hr(), 
+				helpText(h3("Instructions:")), 
+				helpText("- An example for our text prediction has been already 
+				         presented. (See the right side of this page.)"),
+				helpText("- Delete any existing texts in the textbox before 
+				         starting a new prediction task."),
+				helpText("- To begin a new prediction task, type English texts 
+				         (at least one word) in the blank textbox;"), 
+				helpText('- As we type, the most-likely next word will 
+				         show and update at the same time below', 
+				         strong('"The next word might be";')), 
+				helpText("- In addition, more alternative words will also be 
+				         available below", 
+				         strong('"More alternatives of the next word";')),
+				helpText("- If we would like to check up on the histogram, 
+				         based on which the next words are predicted, and/or 
+				         have a look at even more alternatives, just click the",
+				         strong('"Show/Update ..."'), "button."),
+				helpText("- Note that the histogram will not be updated 
+				         automatically. We must click the", 
+				         strong('"Show/Update ..."'), 
+				         "button again to update the histogram"),
+				helpText("- The", strong("Hide/Display"), "button can be used 
+				         to hide or display the current histogram again."),
+				width=3
+            ),
+            
+            mainPanel(
+				h3("Type English text below:"),
+				textInput(inputId="textInput", 
+				          label="", 
+				          value="It was nice to "),
+				tags$head(
+				    tags$style(type="text/css", "#textInput {width: 650px}")),
+				p("Check with", a("Oxford Dictionaries", 
+				                  href="http://www.oxforddictionaries.com/", 
+				                  target="_blank")),
+				hr(),
+				h3("The next word might be:"),
+				textOutput(outputId = "nextWord"),
+				h3("More alternatives:"),
+				textOutput(outputId="nextWord2"), 
+				textOutput(outputId="nextWord3"), 
+				textOutput(outputId="nextWord4"), 
+				textOutput(outputId="nextWord5"), 
+				textOutput(outputId="nextWord6"),
+				textOutput(outputId="nextWord7"),
+				br(),
+				actionButton(
+				    inputId="histWithMore", 
+				    strong("Show/Update"),
+				    label="histogram (with even more alternatives) 
+				    for predicting the next word"), 
+				useShinyjs(), actionButton("hide", strong("Hide/Display")),
+				br(),
+				br(),
+				p("(Note that the", 
+				  strong('"Frequency"'), 
+				  "will be based on the input text and", 
+				  "the corpus produced from the data)"),
+                plotOutput(outputId="histgram", width="66%", height="450px"),
+				textOutput(outputId="noMore")
+            )
+        )
+        
+    )
+)
