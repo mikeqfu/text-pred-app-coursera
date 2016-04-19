@@ -31,14 +31,27 @@ shinyUI(
 				  a("Coursera-SwiftKey.zip", 
 				    href=paste0("https://d396qusza40orc.cloudfront.net/", 
 				                "dsscapstone/dataset/Coursera-SwiftKey.zip"))), 
+				p("For more details about how the algorithm used to make the 
+				  prediction, see", 
+				  a("A simple app for text prediction", 
+				    href="https://rpubs.com/mikeqfu/textPredCoursera",
+				    target="_blank"), "and a", 
+				  a("Milestone report", 
+				    href="http://rpubs.com/mikeqfu/ds_cap_milestone_report",
+				    target="_blank"), "for this project."),
 				hr(), 
 				helpText(h3("Instructions:")), 
 				helpText("- An example for our text prediction has been already 
-				         presented. (See the right side of this page.)"),
-				helpText("- Delete any existing texts in the textbox before 
-				         starting a new prediction task."),
-				helpText("- To begin a new prediction task, type English texts 
-				         (at least one word) in the blank textbox;"), 
+				         presented. (See the right side of this page 
+				         (i.e. the main panel).)"),
+				helpText("- To begin a new prediction task, simply delete any 
+				         existing texts in the provided textbox below", 
+				         strong('"Type English text below";')),
+				helpText("- For any prediction tasks, type English texts 
+				         (at least a single word) in the textbox; Note that 
+				         the app might not be able to make a prediction for 
+				         misspelled input;", "a link to the free online Oxford 
+				         Dictionaries is provided in case needed;"), 
 				helpText('- As we type, the most-likely next word will 
 				         show and update at the same time below', 
 				         strong('"The next word might be";')), 
@@ -48,14 +61,17 @@ shinyUI(
 				helpText("- If we would like to check up on the histogram, 
 				         based on which the next words are predicted, and/or 
 				         have a look at even more alternatives, just click the",
-				         strong('"Show/Update ..."'), "button."),
+				         strong('"Show/Update'), 'histogram (with even more 
+				         alternatives) for predicting the next word"',
+				         "button."),
 				helpText("- Note that the histogram will not be updated 
 				         automatically. We must click the", 
-				         strong('"Show/Update ..."'), 
+				         strong('"Show/Update'), 'histogram (with even more 
+				         alternatives) for predicting the next word"', 
 				         "button again to update the histogram"),
-				helpText("- The", strong("Hide/Display"), "button can be used 
+				helpText("- The", strong('"Hide/Display"'), "button can be used 
 				         to hide or display the current histogram again."),
-				width=3
+				width=4
             ),
             
             mainPanel(
