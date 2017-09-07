@@ -1,4 +1,5 @@
 library(ggplot2)
+
 source("functions.R")
 
 
@@ -6,7 +7,8 @@ shinyServer(
     function(input, output) {
         # The code of "withProgress/incProgress" functions was learnt from, 
         # though slightly cut based on, 
-        # https://github.com/ivanliu1989/SwiftKey-Natural-language/blob/master/Shiny_App/SwiftKey-Language-Modelling/server.R
+        # https://github.com/ivanliu1989/SwiftKey-Natural-language/blob/master
+        # /Shiny_App/SwiftKey-Language-Modelling/server.R
         withProgress(message="App initializing ...", value=NULL, {
             withProgress(message="Loading data", value=0, {
                 load("nGramDF.RData", .GlobalEnv)

@@ -1,7 +1,7 @@
 A simple app for text prediction
 ========================================================
 author: Qian Fu
-date: 19 April 2016
+date: 07 September 2017
 font-family: Cambria
 transition: rotate
 

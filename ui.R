@@ -16,7 +16,8 @@ shinyUI(
                     href="https://www.coursera.org/learn/data-science-project/",
                     target="_blank"), "of the", 
                   a(strong("Data Science"), 
-                    href="https://www.coursera.org/specializations/jhu-data-science",
+                    href=paste0("https://www.coursera.org/specializations/", 
+                                "jhu-data-science"),
                     target="_blank"), 
                   "Coursera course. It contains a predictive text model that 
                   may guess the most likely word following a given text message 
@@ -97,10 +98,11 @@ shinyUI(
 				br(),
 				actionButton(
 				    inputId="histWithMore", 
-				    strong("Show/Update"),
+				    # strong("Show/Update"),
 				    label="histogram (with even more alternatives) 
 				    for predicting the next word"), 
-				useShinyjs(), actionButton("hide", strong("Hide/Display")),
+				useShinyjs(), 
+				actionButton(inputId="hide", label=strong("Hide/Display")),
 				br(),
 				br(),
 				p("(Note that the", 
@@ -111,6 +113,6 @@ shinyUI(
 				textOutput(outputId="noMore")
             )
         )
-        
+		
     )
 )

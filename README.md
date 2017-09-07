@@ -2,8 +2,7 @@
 
 ## textPredCoursera
 
-**
-The 
+**The 
 "<a href="https://mikeqfu.shinyapps.io/textPredCoursera" target="_blank">textPredCoursera</a>" 
 is a simple Shiny app created for the 
 <a href="https://www.coursera.org/learn/data-science-project" target="_blank">Capstone Project</a> 
